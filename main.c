@@ -1,9 +1,7 @@
-//
-//  main.c
 //  comp322-3
-//
 //  Created by Erick Vicencio on 3/23/21.
-//
+//  COMP 322/L—Introduction to Operating Systems and System Architecture
+//  Professor McIlhenny
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +18,7 @@ void printResourceUnitsVector(void);
 void printMaxClaimArray(void);
 void printAllocated(int process);
 void printNeed(int process);
+void printAvailable(int option);
 /*need th rest of the print functions*/
 void enterParameters(void);
 void bankers_algorithm(void);
@@ -43,7 +42,6 @@ int main(int argc, const char * argv[]) {
             default: printf("invalid choice\n");
         }
     }
-    printf("Hello, World!\n");
     return 0;
 }
 
@@ -65,7 +63,7 @@ void printResourceUnitsVector(){
 }
 void printMaxClaimArray(void){
     int i, j;
-    printf("Max Claim: \n");
+    printf("\nMax Claim: \n");
     for(i = 0; i < num_resources; i++){
         printf("\tr%d", i );
       }
@@ -82,7 +80,10 @@ void printMaxClaimArray(void){
 void printAllocated(int process){
     int i, j;
     if(process!=-1){
-        printf("testing");
+        for(j = 0; j < num_resources; j++){
+            printf("%d ", allocation[process*num_resources+j]);
+        }
+        
     }
     else{
         printf("Allocated: \n");
@@ -121,6 +122,25 @@ void printNeed(int process){
           }
     }
 }
+void printAvailable(int option){
+    int i;
+    if( option ==-1){
+    //for loop: print each resource index
+        for(i = 0; i< num_resources; i++){
+            printf("\tr%d", i);
+        }
+        printf("\n");
+        //for loop pring the number of total unites of each resource
+        for(i = 0; i< num_resources; i++){
+            printf("\t%d", available[i]);
+        }
+    }
+    else{
+        for(i = 0; i< num_resources; i++){
+            printf("%d ", available[i]);
+        }
+    }
+}
 
 void enterParameters(){
     /* delcare local variables*/
@@ -128,7 +148,7 @@ void enterParameters(){
     /* prompt for number of process and number of resources */
     printf("Enter the number of processes: ");
     scanf("%d", &num_processes);
-    printf("\nEnter the number of resources: ");
+    printf("Enter the number of resources: ");
     scanf("%d", &num_resources);
     /* printf/scanf combination */
     /* allocate memory for vectors and arrays: resource, avaialbe, max claim, allocation, need */
@@ -158,7 +178,7 @@ void enterParameters(){
     }
     /* for each process, for each resource, prompt for number of resource units allocated to process */
     for(i = 0; i < num_processes; i++){
-        printf("Enter the number of units of each resource (r0 to r%d) allocated to process p%d", num_processes-1, i);
+        printf("Enter the number of units of each resource (r0 to r%d) allocated to process p%d ", num_processes-1, i);
         for(j = 0; j < num_resources; j++){
             scanf("%d", &units);
             allocation[i*num_resources+j] = units;
@@ -169,9 +189,12 @@ void enterParameters(){
 
     /* print resource vector, available vector, max_claim array, allocated array, need array */
     printResourceUnitsVector();
+    printf("Available: \n");
+    printAvailable(-1);
     printMaxClaimArray();
     printAllocated(-1);
     printNeed(-1);
+    
 }
 void bankers_algorithm(void){
     /* declare local variables, including vector in indicate if process is safely sequenced
@@ -185,38 +208,43 @@ void bankers_algorithm(void){
         /*for each process */
         for(i = 0; i< num_processes; i++){
             less_than = 1;
-            printf("Checking: ");
             /* if process hasn't been safely sequenced yet */
             if(safe[i] == 0){
                 /* if the process has been sequenced it'll be a 1*/
                 /* for each resource*/
+                printf("Checking: ");
                 printf("< ");
+                printNeed(i);
+                printf("> <= < ");
+                printAvailable(1);
+                printf("> ");
                 for(j = 0; j <num_resources; j++){
                     /* check for safe sequenceing by comparing process' need vector to available vector */
-                    printf("%d ", need[i*num_resources +j ]);
-                    less_than &= (need[i*num_resources+j]<available[j]);
+                    less_than &= (need[i*num_resources+j]<=available[j]);
 
 
                 }
-
+                
                 /* after done with for loop if each resource is available */
                 /*update number of available units of resource*/
                 if (less_than == 1){
                     /* process p[i] was safely sequenced printf */
                     /* print message that process has been safely sequenced*/
-
+                    printf(":p%d safely sequenced", i);
                     for(int j = 0; j<num_resources; j++){
                         available[j] += allocation[i * num_resources + j];
                     /* free all the resources allocated to the process */
-                    allocation[i*num_resources+j] = 0;
-                    }/*for*/
+                        allocation[i*num_resources+j] = 0;
+                        
+                    } /*for*/
                     num_sequenced++;
-
-                }/* if lessthan==1*/
+                    safe[i] = 1;
+                } /* if lessthan==1*/
                 printf("\n");
             } /*if safe = = 0 */
-
-        }/* for-loop */
+            
+            } /* for-loop */
+       
     }/*while*/
     return;
 }
